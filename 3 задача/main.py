@@ -6,14 +6,21 @@ import validators
 from bs4 import BeautifulSoup
 from typing import Tuple
 
-# Желтый текст
-def yellow_text(text):
+
+def yellow_text(text: str) -> str:
+    """
+    Return yellow text for console (using ANSI escape sequences)
+    :param text: text to color
+    :return: yellow text for console
+    """
     return '\033[33m' + text + '\033[0m'
 
 
-# Пользователь вводит URL страницы
 def get_url_from_input() -> str:
-
+    """
+    Get url from user input and validate it
+    :return: url
+    """
     while True:
         url = input("Введите ссылку: ")
 
@@ -23,25 +30,41 @@ def get_url_from_input() -> str:
             continue
 
         return url
-    
+
 
 def download_webpage_text(url: str) -> str:
+    """
+    Download webpage text
+    :param url: url to download
+    :return: webpage text (html)
+    """
     response = requests.get(url)
     return response.text
 
 
 def count_words(word: str, string: str) -> int:
-    """Count numbers of specific words in text"""
+    """
+    Count numbers of specific words in text
+    :param word: word to count
+    :param string: text to count words
+    :return: numbers of specific words in text
+    """
 
     pattern = r'\b' + word + r'\b'
     result = re.findall(pattern, string)
-    
+
     return len(result)
 
 
 def count_personal_pronouns(text: str) -> Tuple[int, int]:
+    """
+    Count first-person and other person pronouns
+    :param text: text to count pronouns
+    :return: first-person pronouns count, other person pronouns count
+    """
+
     first_person_pronouns = [
-        "я", "мне", "меня", "мной", "мною", 
+        "я", "мне", "меня", "мной", "мною",
         "мы", "нас", "нам", "нами",
     ]
     other_person_pronouns = [
