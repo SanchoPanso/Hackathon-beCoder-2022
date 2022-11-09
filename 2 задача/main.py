@@ -39,6 +39,8 @@ def delete_h2_styles(folder, files):
                     text = text.replace('h2 {', 'h2 {display: none;')
                     with open(folder + "/" + file, 'w') as f:
                         f.write(text)
+                        f.close()
+                    print(yellow_text("В файле " + file + " найден стиль заголовка H2 и он был скрыт!"))
 
 
 def main():

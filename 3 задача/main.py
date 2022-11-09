@@ -68,6 +68,12 @@ def count_personal_pronouns():
 
     print("Количество личных местоимений 1-го лица: ", first_person_pronouns_count)
     print("Количество остальных личных местоимений: ", other_pronouns_count)
+    if first_person_pronouns_count > other_pronouns_count:
+        print("На странице больше личных местоимений 1-го лица")
+    elif first_person_pronouns_count < other_pronouns_count:
+        print("На странице больше остальных (не 1-го лица) личных местоимений")
+    else:
+        print("Количество личных местоимений 1-го лица и остальных личных местоимений равны")
 
     # Удаляем временный файл
     os.remove("temp_page.html")
