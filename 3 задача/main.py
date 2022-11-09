@@ -1,86 +1,95 @@
 import collections
 import os
+import re
 import requests
 import validators
-
+from bs4 import BeautifulSoup
+from typing import Tuple
 
 # Желтый текст
 def yellow_text(text):
     return '\033[33m' + text + '\033[0m'
 
 
-# Скачиваем страницу и сохраняем ее в файл
-def webpage(url):
-    r = requests.get(url)
-    with open("temp_page.html", "w", encoding="utf-8") as file:
-        file.write(r.text)
-        file.close()
+# Пользователь вводит URL страницы
+def get_url_from_input() -> str:
 
-
-# Пользователь вводит URL страницы и скачиваем ее
-def download_webpage():
-    c = False
-    url = False
-    while not c:
+    while True:
         url = input("Введите ссылку: ")
-        if validators.url(url):
-            c = True
-        else:
+
+        # If url is not valid, then print warning and ask again
+        if not validators.url(url):
             print(yellow_text("Некорректная ссылка!"))
-    webpage(url)
+            continue
+
+        return url
+    
+
+def download_webpage_text(url: str) -> str:
+    response = requests.get(url)
+    return response.text
 
 
-# Поиск личных местоимений в тексте и подсчет их количества
-def count_personal_pronouns():
-    first_peron_pronouns = ["я", "мне", "меня", "мной", "мною", "мои", "моё", "моего", "моей", "моем",
-                            "моём", "моему", "мою", " моими", "мы", "нас", "нам", "наш", "наша", "наше"]
-    other_pronouns = ["ты", "тебе", "тебя", "тобой", "тобою", "твои", "твоё", "твоего", "твоей", "твоем",
-                      "твоём", "твоему", "твою", "твоими", "он", "они", "его", "него", "ему",
-                      "нему", "ним", "ними", "нём", "нёму", "вы", "вам", "вас", "вами", "ваш", "ваша", "ваше",
-                      "вашего", "вашей", "вашем", "вашему", "вашими", "вашу",
-                      "вашим", "она", "ее", "её", "неё", "ей", "нее", "ней", "ею", "оно", "них"]
+def count_words(word: str, string: str) -> int:
+    """Count numbers of specific words in text"""
 
-    # Проверка повторяющихся слов в списках
-    # print([item for item, count in collections.Counter(first_peron_pronouns).items() if count > 1])
-    # print([item for item, count in collections.Counter(other_pronouns).items() if count > 1])
+    pattern = r'\b' + word + r'\b'
+    result = re.findall(pattern, string)
+    
+    return len(result)
 
-    # Скачиваем страницу
-    download_webpage()
 
-    with open("temp_page.html", "r", encoding="utf-8") as file:
-        text = file.read()
-        file.close()
+def count_personal_pronouns(text: str) -> Tuple[int, int]:
+    first_person_pronouns = [
+        "я", "мне", "меня", "мной", "мною", 
+        "мы", "нас", "нам", "нами",
+    ]
+    other_person_pronouns = [
+        "ты", "тебе", "тебя", "тобой", "тобою",
+        "вы", "вас", "вам", "вами",
 
-    # Удаляем все символы кроме букв и пробелов
-    text = ''.join([i for i in text if i.isalpha() or i == ' '])
+        "он", "оно", "его", "ему", "им", "нем",
+        "она", "её", "ей", "ней",
 
-    # Переводим в нижний регистр
+        "они", "их", "им", "их", "ими", "них",
+    ]
+
     text = text.lower()
 
     first_person_pronouns_count = 0
-    other_pronouns_count = 0
+    other_person_pronouns_count = 0
 
-    # Слово не должно являться частью другого слова (например, "я" в слове "яблоко")
-    for word in first_peron_pronouns:
-        first_person_pronouns_count += text.count(" " + word + " ")
-    for word in other_pronouns:
-        other_pronouns_count += text.count(" " + word + " ")
+    for word in first_person_pronouns:
+        first_person_pronouns_count += count_words(word, text)
 
-    print("Количество личных местоимений 1-го лица: ", first_person_pronouns_count)
-    print("Количество остальных личных местоимений: ", other_pronouns_count)
-    if first_person_pronouns_count > other_pronouns_count:
-        print("На странице больше личных местоимений 1-го лица")
-    elif first_person_pronouns_count < other_pronouns_count:
-        print("На странице больше остальных (не 1-го лица) личных местоимений")
-    else:
-        print("Количество личных местоимений 1-го лица и остальных личных местоимений равны")
+    for word in other_person_pronouns:
+        other_person_pronouns_count += count_words(word, text)
 
-    # Удаляем временный файл
-    os.remove("temp_page.html")
+    return first_person_pronouns_count, other_person_pronouns_count
 
 
 def main():
-    count_personal_pronouns()
+    url = get_url_from_input()
+    page_text = download_webpage_text(url)
+
+    # turn html-text into clean text without tags
+    soup = BeautifulSoup(page_text, "html.parser")
+    clean_text = soup.text
+
+    first_person_pronouns_count, other_person_pronouns_count = count_personal_pronouns(clean_text)
+
+    # print results
+    print("Количество личных местоимений 1-го лица: ", first_person_pronouns_count)
+    print("Количество остальных личных местоимений: ", other_person_pronouns_count)
+
+    if first_person_pronouns_count > other_person_pronouns_count:
+        print("На странице больше личных местоимений 1-го лица")
+
+    elif first_person_pronouns_count < other_person_pronouns_count:
+        print("На странице больше остальных (не 1-го лица) личных местоимений")
+
+    else:
+        print("Количество личных местоимений 1-го лица и остальных личных местоимений равны")
 
 
 if __name__ == "__main__":
