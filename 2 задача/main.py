@@ -51,9 +51,9 @@ def find_h2_styles(folder: str, files: list):
             if file == 'headers.css':
                 continue
             elif file.endswith('.css'):
-                if '.h2' in text:
+                if 'h2' in text:
                     print(yellow_text(f"Файл {file} содержит стиль для h2:"))
-                    style = text[text.find('.h2'):]
+                    style = text[text.find('h2'):]
                     style = style[:style.find('}') + 1]
                     print(style)
             elif "<style" in text:
