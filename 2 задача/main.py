@@ -1,13 +1,20 @@
 import os
 
 
-# Желтый текст
-def yellow_text(text):
+def yellow_text(text: str) -> str:
+    """
+    Return yellow text for console (using ANSI escape sequences)
+    :param text: text to color
+    :return: yellow text for console
+    """
     return '\033[33m' + text + '\033[0m'
 
 
-# Пользователь вводит адрес папки и проверяется наличие папки
-def check_folder():
+def check_folder() -> str:
+    """
+    Check if folder exists and return it if it does or ask user to enter folder name again
+    :return: folder path + name
+    """
     c = False
     folder = False
     while not c:
@@ -19,34 +26,54 @@ def check_folder():
     return folder
 
 
-# Поиск файлов в папке
 def get_files(folder):
+    """
+    Get list of files in folder
+    :param folder: folder to get files from
+    :return: list of files in folder
+    """
     files = []
     for file in os.listdir(folder):
         files.append(file)
     return files
 
 
-# Функция ищет файлы со стилями заголовков H2, исключая headers.css и удаляет стили на H2 из них
-# если, конечно, стиль заголовка H2 записан как h2 { ... }
-def delete_h2_styles(folder, files):
+def find_h2_styles(folder: str, files: list):
+    """
+    Find h2 styles in files in <style> tags or in .h2 class in .css files, don't read headers.css
+    :param folder: folder to find files in
+    :param files: list of files to find h2 styles in
+    :return: None
+    """
     for file in files:
-        if file != 'headers.css':
-            with open(folder + "/" + file, 'r') as f:
-                text = f.read()
-                f.close()
-                if 'h2 {' in text:
-                    text = text.replace('h2 {', 'h2 {display: none;')
-                    with open(folder + "/" + file, 'w') as f:
-                        f.write(text)
-                        f.close()
-                    print(yellow_text("В файле " + file + " найден стиль заголовка H2 и он был скрыт!"))
+        with open(os.path.join(folder, file), 'r', encoding='utf-8') as f:
+            text = f.read()
+            if file == 'headers.css':
+                continue
+            elif file.endswith('.css'):
+                if '.h2' in text:
+                    print(yellow_text(f"Файл {file} содержит стиль для h2:"))
+                    style = text[text.find('.h2'):]
+                    style = style[:style.find('}') + 1]
+                    print(style)
+            elif "<style" in text:
+                style = text.split("<style")[1].split("</style>")[0]
+                if "h2" in style:
+                    print(yellow_text(f"Файл {file} содержит стиль для h2:"))
+                    style = style[style.find('h2'):]
+                    style = style[:style.find('}') + 1]
+                    print(style)
 
 
 def main():
+    # Comment this line if you want to enter folder name manually
     folder = check_folder()
+
+    # Uncomment to enter folder name manually
+    # folder = "./test"
+
     files = get_files(folder)
-    delete_h2_styles(folder, files)
+    find_h2_styles(folder, files)
 
 
 if __name__ == "__main__":
