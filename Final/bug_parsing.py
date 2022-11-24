@@ -10,7 +10,7 @@ from sklearn.model_selection import train_test_split
 from sklearn.metrics import accuracy_score, precision_score, recall_score, f1_score
 
 
-def find_bugs(commit_table: list) -> list:
+def find_bugs(commits: list) -> list:
     """
     :param commit_table: table of commits sorted by time
     :return: list of dict with author and file
@@ -18,17 +18,17 @@ def find_bugs(commit_table: list) -> list:
 
     bugs = []
 
-    for idx, commit in enumerate(commit_table):
+    for idx, commit in enumerate(commits):
         if commit['fix'] is True:
             fixed_files = commit['files']
 
-            if idx == len(commit_table) - 1:
+            if idx == len(commits) - 1:
                 continue
 
             for fixed_file in fixed_files:
 
-                for i in range(idx + 1, len(commit_table)):
-                    old_commit = commit_table[i]
+                for i in range(idx + 1, len(commits)):
+                    old_commit = commits[i]
                     if fixed_file in old_commit["files"]:
                         bugs.append(
                             {
@@ -80,16 +80,22 @@ def find_commits_numbers(commits: list):
     return commits_numbers
 
 
-def find_statistics1(numbers: dict, bug_freq: list):
+def find_bugability_statistics_1(commits_numbers: dict, bug_freq: list):
+    """
+    Find 'numbers_of_bugs / numbers_of_commits' for specific file for specific author of a commit
+
+    :param commits_numbers: dict, keys - authors, values - dicts of files and its number of commits for specific author
+    :param bug_freq: dict, dict, keys - authors, values - dicts of files and its number of bugs for specific author
+    """
     statistic = {}
 
-    for author in numbers:
+    for author in commits_numbers:
 
         if author not in statistic:
             statistic[author] = {}
 
-        for file in numbers[author]:
-            numbers_of_commits = numbers[author][file]
+        for file in commits_numbers[author]:
+            numbers_of_commits = commits_numbers[author][file]
 
             if author in bug_freq and file in bug_freq[author]:
                 numbers_of_bugs = bug_freq[author][file]
@@ -101,31 +107,52 @@ def find_statistics1(numbers: dict, bug_freq: list):
     return statistic
 
 
-def find_statistics2(__numbers: dict, bug_freq: list):
+def find_bugability_statistics_2(commit_numbers: dict, bug_freq: list):
+    """
+    Find for specific author 
+    vector x - vector of 'numbers_of_commits' for specific file
+    vector y - vector of 'numbers_of_bugs / numbers_of_commits' for specific file
+
+    :param commits_numbers: dict, keys - authors, values - dicts of files and its number of commits for specific author
+    :param bug_freq: dict, dict, keys - authors, values - dicts of files and its number of bugs for specific author
+    """
     statistic = {}
 
-    for author in __numbers:
+    for author in commit_numbers:
 
         if author not in statistic:
             statistic[author] = {'x': [], 'y': []}
 
-        for file in __numbers[author]:
-            numbers_of_commits = __numbers[author][file]
+        for file in commit_numbers[author]:
+            numbers_of_commits = commit_numbers[author][file]
 
             if author in bug_freq and file in bug_freq[author]:
                 numbers_of_bugs = bug_freq[author][file]
             else:
                 numbers_of_bugs = 0
 
-            statistic[author]['y'].append(numbers_of_commits)
             statistic[author]['x'].append(numbers_of_bugs / numbers_of_commits)
+            statistic[author]['y'].append(numbers_of_commits)
 
     return statistic
 
 
-def prepare_troublefiles_data(numbers: dict, bug_freq: list, bugs: list, commits: list):
+def prepare_troublefiles_data(commits_numbers: dict, bug_freq: list, bugs: list, commits: list):
+
+    """
+    Find input data for classification of defining trouble files, and namely
+
+    vector x - summary bugability for files
+    vector y - 1 if file is troubled and 0 otherwise
+
+    :param commits_numbers: dict, keys - authors, values - dicts of files and its number of commits for specific author
+    :param bug_freq: dict, dict, keys - authors, values - dicts of files and its number of bugs for specific author
+    :param bugs: list of dict with author, file, timestamp of a specific bug
+    :param commits: list of dict of commit info
+    """
+
     x, y = [], []
-    statistic = find_statistics1(numbers, bug_freq)
+    statistic_1 = find_bugability_statistics_1(commits_numbers, bug_freq)
     bug_timestamps = [bug['timestamp'] for bug in bugs]
 
     for commit in commits:
@@ -136,38 +163,13 @@ def prepare_troublefiles_data(numbers: dict, bug_freq: list, bugs: list, commits
         bug_probs = 0
         for file in files:
 
-            if file in statistic[author]:
-                bug_probs += statistic[author][file]
+            if file in statistic_1[author]:
+                bug_probs += statistic_1[author][file]
 
         x.append([bug_probs])
         y.append([1] if timestamp in bug_timestamps else [0])
 
     return x, y
-
-
-def otsu(x, y):
-    total = sum(y)
-    if total == 0:
-        return 0
-    sum_y = sum([i * j for i, j in zip(x, y)])
-    sum_y2 = sum([i * i * j for i, j in zip(x, y)])
-    max_x = max(x)
-    min_x = min(x)
-    mean = sum_y / total
-    variance = sum_y2 / total - mean * mean
-    threshold = (mean - min_x) / (max_x - min_x)
-    threshold = threshold * (max_x - min_x) + min_x
-    return threshold
-
-
-def get_hist(x, num=10):
-    hist = [0 for i in range(num)]
-    for xi in x:
-        for i in range(num):
-            if i * 1 / num <= xi <= (i + 1) * 1 / num:
-                hist[i] += 1
-
-    return hist
 
 
 def find_errors_if_file():
@@ -181,7 +183,7 @@ def find_errors_if_file():
 
     comm_numbers = find_commits_numbers(__commits)
 
-    statistic = find_statistics1(comm_numbers, bug_freq)
+    statistic = find_bugability_statistics_1(comm_numbers, bug_freq)
     # author = list(statistic.keys())[0]
     __common_error_arr = []
     __error_arr = []
@@ -200,10 +202,6 @@ def display_histogram_first(__common_error_arr: list, __error_arr: list):
     pd.Series(__common_error_arr).plot(kind='hist', title='height', bins=5)
     plt.xlim([0, 1.2])
 
-    __x = [0.1 * __i for __i in range(10)]
-    __y = get_hist(__error_arr)
-    print("Порог Оцу: ", otsu(__x, __y))
-
     plt.title('Histogram of errors (Hypothesis 1)')
     plt.xlabel('Error')
     plt.ylabel('Number of files')
@@ -217,7 +215,7 @@ def display_histogram_second(__numbers: dict, __freq: list):
     plt.rcParams.update({'font.size': 14})
 
     common_x2, common_y2 = [], []
-    statistic2 = find_statistics2(__numbers, __freq)
+    statistic2 = find_bugability_statistics_2(__numbers, __freq)
     reg = LinearRegression()
     for author in statistic2.keys():
         x2 = statistic2[author]['x']
@@ -243,8 +241,7 @@ def display_histogram_second(__numbers: dict, __freq: list):
 
     line_x = np.arange(0, 1, 0.1)
     line_y = reg.predict(line_x.reshape(-1, 1))
-    # print(line_x)
-    # print(line_y)
+
     plt.plot(line_x, line_y, color='orange')
 
     plt.title('Histogram of errors (Hypothesis 2)')
@@ -255,11 +252,13 @@ def display_histogram_second(__numbers: dict, __freq: list):
     plt.show()
 
 
-def bug_prediction(__numbers: dict, __freq: list, __bugs: list, __commits: list):
-    x, y = prepare_troublefiles_data(__numbers, __freq, __bugs, __commits)
+def bug_prediction(commits_numbers: dict, bug_freq: list, bugs: list, commits: list):
+    x, y = prepare_troublefiles_data(commits_numbers, bug_freq, bugs, commits)
 
     # print(len(x))
 
+
+    ### Simple class balancing ##
     x0, y0, x1, y1 = [], [], [], []
 
     for i in range(len(x)):
@@ -270,39 +269,34 @@ def bug_prediction(__numbers: dict, __freq: list, __bugs: list, __commits: list)
             x1.append(x[i])
             y1.append(y[i])
 
-    # print('x0', len(x0))
-    # print('x1', len(x1))
-
     x1 = x1 * (len(x0) // len(x1))
     y1 = y1 * (len(y0) // len(y1))
 
     x = x0 + x1
     y = y0 + y1
 
-    #
+    # train-test splitting
     train_x, test_x, train_y, test_y = train_test_split(x, y, test_size=0.3, random_state=97)
 
-    # train_x, train_y = x[:int(0.8*len(x))], y[:int(0.8*len(y))]
-    # test_x, test_y = x[int(0.8*len(x)):], y[int(0.8*len(y)):]
-
+    # Training
     model = LogisticRegression()
     model.fit(train_x, train_y)
 
-    # print(model.score(test_x, test_y))
-
+    # Evaluating
     test_pred_y = model.predict(test_x)
-    # print(test_pred_y)
 
     print('accuracy:', accuracy_score(test_y, test_pred_y))
     print('precision:', precision_score(test_y, test_pred_y))
     print('recall:', recall_score(test_y, test_pred_y))
 
 
-if __name__ == '__main__':
+def main():
     common_error_arr, error_arr, numbers, freq, bugs, commits = find_errors_if_file()
 
     display_histogram_first(common_error_arr, error_arr)
-
     display_histogram_second(numbers, freq)
-
     bug_prediction(numbers, freq, bugs, commits)
+
+
+if __name__ == '__main__':
+    main()

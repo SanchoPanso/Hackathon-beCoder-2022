@@ -7,7 +7,7 @@ import sys
 import time
 # import json
 from git import Repo
-import find_bugmakers
+import bug_parsing
 
 try:
     import ujson as json
@@ -215,21 +215,6 @@ def menu():
 
 
 def main():
-    # if os.path.exists("./repo"):
-    #     os.system("del /f /s /q repo")
-    #     shutil.rmtree("./repo")
-    # if os.path.exists("./commits.txt"):
-    #     os.remove("./commits.txt")
-    #
-    # url = get_url_from_input()
-    # get_repo_from_url(url)
-    #
-    # repo = Repo("./repo")
-    # get_commits_from_repo(repo)
-
-    # fix_lines = find_fix_lines()
-    # find_who_made_mistake()
-
     menu()
 
 
