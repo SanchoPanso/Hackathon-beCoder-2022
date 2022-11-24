@@ -1,0 +1,107 @@
+[
+    {
+        "timestamp": 1000,
+        "id": "8cfcd201b0dc412ae59fe55dcc1e0c6a361ce72f",
+        "author": "fixer",
+        "fix": true,
+        "files": {
+            "web/src/components/MemoResources.tsx": {
+                "insertions": 18,
+                "deletions": 9,
+                "lines": 27
+            },
+            "web/src/less/memo-resources.less": {
+                "insertions": 5,
+                "deletions": 5,
+                "lines": 10
+            }
+        }
+    }, 
+    {
+        "timestamp": 900,
+        "id": "abcd3cfafb8ae04b9a9d2d6640044607bb7c31ff",
+        "author": "clearcodemaker",
+        "fix": false,
+        "files": {
+            "clearcode.cpp": {
+                "insertions": 18,
+                "deletions": 9,
+                "lines": 27
+            },
+            "clearcode.py": {
+                "insertions": 5,
+                "deletions": 5,
+                "lines": 10
+            }
+        }
+    },
+    {
+        "timestamp": 800,
+        "id": "50d41c456b418593acc0daddd78443082a13a6e8",
+        "author": "bugmaker_1",
+        "fix": false,
+        "files": {
+            "clearcode.cpp": {
+                "insertions": 18,
+                "deletions": 9,
+                "lines": 27
+            },
+            "clearcode.py": {
+                "insertions": 5,
+                "deletions": 5,
+                "lines": 10
+            },
+            "web/src/components/MemoResources.tsx": {
+                "insertions": 666,
+                "deletions": 666,
+                "lines": 27
+            }
+        }
+    }, 
+    {
+        "timestamp": 600,
+        "id": "50d41c456b418593acc0daddd78443082a13a6e7",
+        "author": "clearcoder",
+        "fix": false,
+        "files": {
+            "clearcode.cpp": {
+                "insertions": 18,
+                "deletions": 9,
+                "lines": 27
+            },
+            "clearcode.py": {
+                "insertions": 5,
+                "deletions": 5,
+                "lines": 10
+            },
+            "web/src/components/MemoResources.tsx": {
+                "insertions": 666,
+                "deletions": 666,
+                "lines": 27
+            }
+        }
+    },
+    {
+        "timestamp": 500,
+        "id": "50d41c456b418593acc0daddd78443082a13a6e6",
+        "author": "bugmaker_2",
+        "fix": false,
+        "files": {
+            "clearcode.cpp": {
+                "insertions": 18,
+                "deletions": 9,
+                "lines": 27
+            },
+            "clearcode.py": {
+                "insertions": 5,
+                "deletions": 5,
+                "lines": 10
+            },
+            "web/src/less/memo-resources.less": {
+                "insertions": 666,
+                "deletions": 666,
+                "lines": 27
+            }
+        }
+    }
+]
