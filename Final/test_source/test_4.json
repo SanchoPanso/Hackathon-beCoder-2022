@@ -103,5 +103,41 @@
                 "lines": 27
             }
         }
+    },
+    {
+        "timestamp": 400,
+        "id": "50d41c456b418593acc0daddd78443082a13a6e5",
+        "author": "fixer",
+        "fix": true,
+        "files": {
+            "web/src/less/memo-resources.less": {
+                "insertions": 123,
+                "deletions": 232,
+                "lines": 27
+            }
+        }
+    },
+    {
+        "timestamp": 300,
+        "id": "50d41c456b418593acc0daddd78443082a13a6e4",
+        "author": "bugmaker_2",
+        "fix": false,
+        "files": {
+            "clearcode.cpp": {
+                "insertions": 18,
+                "deletions": 9,
+                "lines": 27
+            },
+            "clearcode.py": {
+                "insertions": 5,
+                "deletions": 5,
+                "lines": 10
+            },
+            "web/src/less/memo-resources.less": {
+                "insertions": 666,
+                "deletions": 666,
+                "lines": 27
+            }
+        }
     }
 ]
