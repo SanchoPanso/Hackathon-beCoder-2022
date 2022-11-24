@@ -64,7 +64,6 @@ def get_repo_from_url(url: str) -> Repo:
     """
     Get repository from url
     :param url: url to repository
-    :return: repository
     """
     print(green_text("\nСкачивание репозитория... Пожалуйста, подождите, это может занять некоторое время...\n"))
     Repo.clone_from(url, "./repo")
@@ -142,13 +141,22 @@ def check_if_repo_exists() -> bool:
 
 
 def delete_repo_and_commits():
-    if os.path.exists("./repo"):
-        os.system("del /f /s /q repo >nul 2>&1")
-        shutil.rmtree("./repo")
-    if os.path.exists("./commits.txt"):
-        os.remove("./commits.txt")
+    if sys.platform == "win32":
+        if os.path.exists("./repo"):
+            os.system("del /f /s /q repo >nul 2>&1")
+            shutil.rmtree("./repo")
+        if os.path.exists("./commits.txt"):
+            os.remove("./commits.txt")
+    else:
+        if os.path.exists("./repo"):
+            os.system("rm -rf repo")
+        if os.path.exists("./commits.txt"):
+            os.remove("./commits.txt")
 
 def menu():
+    """
+    Main menu
+    """
     if check_if_repo_exists():
         common_error_arr, error_arr, numbers, freq, bugs, commits = find_bugmakers.find_errors_if_file()
         print(green_text("\nРепозиторий уже скачан! Повторное скачивание не требуется."))
@@ -166,6 +174,7 @@ def menu():
         print("Репозиторий для тестов: https://github.com/usememos/memos")
 
         choice = input("Введите номер пункта меню: ")
+        print('\n\n\n\n\n')
         if choice == "1":
             url = get_url_from_input()
             delete_repo_and_commits()
