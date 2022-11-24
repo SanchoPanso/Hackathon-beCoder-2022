@@ -1,8 +1,12 @@
 import json
+import random
 import pandas as pd
 import matplotlib.pyplot as plt
 import numpy as np
 from sklearn.linear_model import LinearRegression, LogisticRegression
+from sklearn.ensemble import RandomForestClassifier
+from sklearn.model_selection import train_test_split
+
 from sklearn.metrics import accuracy_score, precision_score, recall_score, f1_score
 
 
@@ -243,10 +247,37 @@ if __name__ == '__main__':
 
 
     x, y = prepare_troublefiles_data(numbers, freq, bugs, commits)
-    model = LogisticRegression()
-    model.fit(x, y)
-    print(model.score(x, y))
+    print(len(x))
 
+    x0, y0, x1, y1 = [], [], [], []
+    for i in range(len(x)):
+        if y[i][0] == 0:
+            x0.append(x[i])
+            y0.append(y[i])
+        else:
+            x1.append(x[i])
+            y1.append(y[i])
+    print('x0', len(x0))
+    print('x1', len(x1))
+    x1 = x1 * (len(x0) // len(x1))
+    y1 = y1 * (len(y0) // len(y1))
+
+    x = x0 + x1
+    y = y0 + y1
+
+    train_x, test_x, train_y, test_y = train_test_split(x, y, test_size = 0.3, random_state = 97)
+
+
+    # train_x, train_y = x[:int(0.8*len(x))], y[:int(0.8*len(y))]
+    # test_x, test_y = x[int(0.8*len(x)):], y[int(0.8*len(y)):]
+    model = LogisticRegression()
+    model.fit(train_x, train_y)
+    print(model.score(test_x, test_y))
+    test_pred_y = model.predict(test_x)
+    print(test_pred_y)
+    print('accuracy:', accuracy_score(test_y, test_pred_y))
+    print('precision:', precision_score(test_y, test_pred_y))
+    print('recall:', recall_score(test_y, test_pred_y))
 
 
 
