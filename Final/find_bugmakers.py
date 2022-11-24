@@ -13,7 +13,7 @@ def find_bugs(commit_table: list) -> list:
         if commit['fix'] is True:
             fixed_files = commit['files']
 
-            if idx == len(commits) - 1:
+            if idx == len(commit_table) - 1:
                 continue
 
             for fixed_file in fixed_files:
@@ -87,7 +87,7 @@ def find_statistics(numbers: dict, bug_freq: dict):
 
 if __name__ == '__main__':
 
-    with open('./commits.json', 'r') as file:
+    with open('./test_source/test_commits.json', 'r') as file:
         commits = json.load(file)
     
     #print(commits)
@@ -97,7 +97,7 @@ if __name__ == '__main__':
     freq = find_bug_frequency(bugs)
 
     numbers = find_commits_numbers(commits)
-    print(numbers)
+    print(bugs)
 
 
 

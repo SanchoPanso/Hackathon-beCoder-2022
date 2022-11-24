@@ -108,14 +108,14 @@ def get_commits_from_repo(repo: Repo):
 #     print(fix_line)
 
 def main():
-    # if os.path.exists("./repo"):
-    #     os.system("del /f /s /q repo")
-    #     shutil.rmtree("./repo")
-    # if os.path.exists("./commits.txt"):
-    #     os.remove("./commits.txt")
+    if os.path.exists("./repo"):
+        os.system("del /f /s /q repo")
+        shutil.rmtree("./repo")
+    if os.path.exists("./commits.txt"):
+        os.remove("./commits.txt")
 
-    # url = get_url_from_input()
-    # get_repo_from_url(url)
+    url = get_url_from_input()
+    get_repo_from_url(url)
 
     repo = Repo("./repo")
     get_commits_from_repo(repo)
