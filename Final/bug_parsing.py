@@ -4,9 +4,12 @@ import pandas as pd
 import matplotlib.pyplot as plt
 import numpy as np
 from sklearn.linear_model import LinearRegression, LogisticRegression
+from sklearn.naive_bayes import GaussianNB
 from sklearn.ensemble import RandomForestClassifier
 from sklearn.model_selection import train_test_split
 import time
+import math
+
 
 from sklearn.metrics import accuracy_score, precision_score, recall_score, f1_score
 
@@ -134,7 +137,7 @@ def find_bugability_statistics_2(commit_numbers: dict, bug_freq: list):
                 numbers_of_bugs = 0
 
             statistic[author]['x'].append(numbers_of_bugs / numbers_of_commits)
-            statistic[author]['y'].append(numbers_of_commits)
+            statistic[author]['y'].append(math.log(numbers_of_commits))
 
     return statistic
 
@@ -161,16 +164,62 @@ def prepare_troublefiles_data(commits_numbers: dict, bug_freq: list, bugs: list,
         author = commit['author']
         files = commit['files']
 
-        bug_probs = 0
+        nonbug_prob = 1
         for file in files:
 
             if file in statistic_1[author]:
-                bug_probs += statistic_1[author][file]
+                nonbug_prob *= 1 - statistic_1[author][file]
 
-        x.append([bug_probs])
+        x.append([1 - nonbug_prob])
         y.append([1] if timestamp in bug_timestamps else [0])
 
     return x, y
+
+
+def prepare_good_reviewer_data(commits_numbers: dict, bug_freq: list, bugs: list, commits: list):
+    """
+    Find input data for classification of defining trouble files, and namely
+
+    vector x - summary bugability for files
+    vector y - 1 if file is troubled and 0 otherwise
+
+    :param commits_numbers: dict, keys - authors, values - dicts of files and its number of commits for specific author
+    :param bug_freq: dict, dict, keys - authors, values - dicts of files and its number of bugs for specific author
+    :param bugs: list of dict with author, file, timestamp of a specific bug
+    :param commits: list of dict of commit info
+    """
+
+    x, y = [], []
+    statistic_1 = find_bugability_statistics_1(commits_numbers, bug_freq)
+    bug_timestamps = [bug['timestamp'] for bug in bugs]
+
+    authors = {}
+    cnt = 0
+    for i, commit in enumerate(commits):
+        author = commit['author']
+        if author not in authors:
+            authors[author] = cnt
+            cnt += 1
+    
+
+    for commit in commits:
+        timestamp = commit['timestamp']
+        author = commit['author']
+        files = commit['files']
+
+
+        for a in authors:
+            nonbug_prob = 1
+            for file in files:
+                if file in statistic_1[a]:
+                    nonbug_prob *= 1 - statistic_1[a][file]
+
+            x.append([1 - nonbug_prob])
+            y.append([1] if timestamp in bug_timestamps and a == author else [0])
+
+    return x, y
+
+
 
 
 def find_errors_if_file():
@@ -266,6 +315,24 @@ def display_histogram_second(numbers: dict, freq: list):
     plt.show()
 
 
+def predict_bugability(commit: dict, model, commits_numbers: dict, bug_freq: list, bugs: list, commits: list):
+    timestamp = commit['timestamp']
+    author = commit['author']
+    files = commit['files']
+
+    statistic_1 = find_bugability_statistics_1(commits_numbers, bug_freq)
+
+    nonbug_prob = 1
+    for file in files:
+
+        if file in statistic_1[author]:
+            nonbug_prob *= 1 - statistic_1[author][file]
+
+    x = [1 - nonbug_prob]
+    
+    return model.predict(x)
+
+
 def bug_prediction(commits_numbers: dict, bug_freq: list, bugs: list, commits: list):
     """
     This function predicts the bugs using logistic regression
@@ -275,7 +342,7 @@ def bug_prediction(commits_numbers: dict, bug_freq: list, bugs: list, commits: l
 
     # print(len(x))
 
-    ## Simple class balancing ##
+    # Simple class balancing ##
     x0, y0, x1, y1 = [], [], [], []
 
     for i in range(len(x)):
@@ -302,12 +369,63 @@ def bug_prediction(commits_numbers: dict, bug_freq: list, bugs: list, commits: l
     # Evaluating
     test_pred_y = model.predict(test_x)
 
+
     print('\nData for trouble files prediction:')
     print('Accuracy:', accuracy_score(test_y, test_pred_y))
     print('Precision:', precision_score(test_y, test_pred_y))
     print('Recall:', recall_score(test_y, test_pred_y))
 
     time.sleep(5)
+
+    return model
+
+
+def reviewer_prediction(commits_numbers: dict, bug_freq: list, bugs: list, commits: list):
+    """
+    This function predicts the bugs using logistic regression
+    Check the docs for more info
+    """
+    x, y = prepare_good_reviewer_data(commits_numbers, bug_freq, bugs, commits)
+
+    # print(len(x))
+
+    # Simple class balancing ##
+    x0, y0, x1, y1 = [], [], [], []
+
+    for i in range(len(x)):
+        if y[i][0] == 0:
+            x0.append(x[i])
+            y0.append(y[i])
+        else:
+            x1.append(x[i])
+            y1.append(y[i])
+
+    x1 = x1 * (len(x0) // len(x1))
+    y1 = y1 * (len(y0) // len(y1))
+
+    x = x0 + x1
+    y = y0 + y1
+
+    # train-test splitting
+    train_x, test_x, train_y, test_y = train_test_split(x, y, test_size=0.3, random_state=97)
+
+    # Training
+    model = LogisticRegression()
+    model.fit(train_x, train_y)
+
+    # Evaluating
+    test_pred_y = model.predict(test_x)
+
+
+    print('\nData for trouble files prediction:')
+    print('Accuracy:', accuracy_score(test_y, test_pred_y))
+    print('Precision:', precision_score(test_y, test_pred_y))
+    print('Recall:', recall_score(test_y, test_pred_y))
+
+    time.sleep(5)
+
+    return model
+
 
 
 def main():
