@@ -6,13 +6,15 @@ import numpy as np
 from sklearn.linear_model import LinearRegression, LogisticRegression
 from sklearn.ensemble import RandomForestClassifier
 from sklearn.model_selection import train_test_split
+import time
 
 from sklearn.metrics import accuracy_score, precision_score, recall_score, f1_score
 
 
 def find_bugs(commits: list) -> list:
     """
-    :param commit_table: table of commits sorted by time
+    This functions create list of dict with bugmaker and file
+    :param commits: list of commits sorted by time
     :return: list of dict with author and file
     """
 
@@ -138,7 +140,6 @@ def find_bugability_statistics_2(commit_numbers: dict, bug_freq: list):
 
 
 def prepare_troublefiles_data(commits_numbers: dict, bug_freq: list, bugs: list, commits: list):
-
     """
     Find input data for classification of defining trouble files, and namely
 
@@ -173,49 +174,62 @@ def prepare_troublefiles_data(commits_numbers: dict, bug_freq: list, bugs: list,
 
 
 def find_errors_if_file():
+    """
+    This function looks for errors in the .json file
+    :return: See docs
+    """
     with open('./commits.json', 'r') as file:
-        __commits = json.load(file)
+        commits = json.load(file)
 
     # print(commits)
 
-    __bugs = find_bugs(__commits)
-    bug_freq = find_bug_frequency(__bugs)
+    bugs = find_bugs(commits)
+    bug_freq = find_bug_frequency(bugs)
 
-    comm_numbers = find_commits_numbers(__commits)
+    comm_numbers = find_commits_numbers(commits)
 
     statistic = find_bugability_statistics_1(comm_numbers, bug_freq)
     # author = list(statistic.keys())[0]
-    __common_error_arr = []
-    __error_arr = []
+    common_error_arr = []
+    error_arr = []
 
     for authors in statistic.keys():
         # print(authors)
-        __error_arr = [statistic[authors][file] for file in statistic[authors]]  # if statistic[authors][file] != 0]
-        __common_error_arr += __error_arr
+        error_arr = [statistic[authors][file] for file in statistic[authors]]  # if statistic[authors][file] != 0]
+        common_error_arr += error_arr
 
-    return __common_error_arr, __error_arr, comm_numbers, bug_freq, __bugs, __commits
+    return common_error_arr, error_arr, comm_numbers, bug_freq, bugs, commits
 
 
-def display_histogram_first(__common_error_arr: list, __error_arr: list):
+def display_histogram_first(common_error_arr: list, error_arr: list):
+    """
+    This function displays the histogram of the first hypotesis
+    Check the docs for more info
+    """
     plt.rcParams.update({'font.size': 14})
 
-    pd.Series(__common_error_arr).plot(kind='hist', title='height', bins=5)
+    pd.Series(common_error_arr).plot(kind='hist', title='height', bins=5)
     plt.xlim([0, 1.2])
 
     plt.title('Histogram of errors (Hypothesis 1)')
     plt.xlabel('Error')
     plt.ylabel('Number of files')
 
-    plt.axvline(np.mean(__error_arr), color='b', linestyle='solid', linewidth=2)
+    plt.axvline(np.mean(error_arr), color='b', linestyle='solid', linewidth=2)
 
     plt.show()
 
 
-def display_histogram_second(__numbers: dict, __freq: list):
+def display_histogram_second(numbers: dict, freq: list):
+    """
+    This function displays the histogram of the second hypotesis
+    Check the docs for more info
+    """
+
     plt.rcParams.update({'font.size': 14})
 
     common_x2, common_y2 = [], []
-    statistic2 = find_bugability_statistics_2(__numbers, __freq)
+    statistic2 = find_bugability_statistics_2(numbers, freq)
     reg = LinearRegression()
     for author in statistic2.keys():
         x2 = statistic2[author]['x']
@@ -253,12 +267,15 @@ def display_histogram_second(__numbers: dict, __freq: list):
 
 
 def bug_prediction(commits_numbers: dict, bug_freq: list, bugs: list, commits: list):
+    """
+    This function predicts the bugs using logistic regression
+    Check the docs for more info
+    """
     x, y = prepare_troublefiles_data(commits_numbers, bug_freq, bugs, commits)
 
     # print(len(x))
 
-
-    ### Simple class balancing ##
+    ## Simple class balancing ##
     x0, y0, x1, y1 = [], [], [], []
 
     for i in range(len(x)):
@@ -285,9 +302,12 @@ def bug_prediction(commits_numbers: dict, bug_freq: list, bugs: list, commits: l
     # Evaluating
     test_pred_y = model.predict(test_x)
 
-    print('accuracy:', accuracy_score(test_y, test_pred_y))
-    print('precision:', precision_score(test_y, test_pred_y))
-    print('recall:', recall_score(test_y, test_pred_y))
+    print('\nData for trouble files prediction:')
+    print('Accuracy:', accuracy_score(test_y, test_pred_y))
+    print('Precision:', precision_score(test_y, test_pred_y))
+    print('Recall:', recall_score(test_y, test_pred_y))
+
+    time.sleep(5)
 
 
 def main():

@@ -60,7 +60,7 @@ def get_url_from_input() -> str:
         return url
 
 
-def get_repo_from_url(url: str) -> Repo:
+def get_repo_from_url(url: str):
     """
     Get repository from url
     :param url: url to repository
@@ -158,7 +158,7 @@ def menu():
     Main menu
     """
     if check_if_repo_exists():
-        common_error_arr, error_arr, numbers, freq, bugs, commits = find_bugmakers.find_errors_if_file()
+        common_error_arr, error_arr, numbers, freq, bugs, commits = bug_parsing.find_errors_if_file()
         print(green_text("\nРепозиторий уже скачан! Повторное скачивание не требуется."))
     else:
         common_error_arr, error_arr, numbers, freq, bugs, commits = [], [], [], [], [], []
@@ -169,6 +169,7 @@ def menu():
         print(green_text("2") + ". Построить гистограмму для первой гипотезы")
         print(green_text("3") + ". Построить гистограмму для второй гипотезы")
         print(green_text("4") + ". Вывести вероятность ошибки в файле")
+        print(green_text("5") + ". Скачать тестовый репозиторий (usememos/memos)")
         print(green_text("0") + ". Удалить все файлы репозитория и информацию о коммитах")
         print(green_text("q") + ". Выход")
         print("Репозиторий для тестов: https://github.com/usememos/memos")
@@ -180,7 +181,7 @@ def menu():
             delete_repo_and_commits()
             get_repo_from_url(url)
             get_commits_from_repo(Repo("./repo"))
-            common_error_arr, error_arr, numbers, freq, bugs, commits = find_bugmakers.find_errors_if_file()
+            common_error_arr, error_arr, numbers, freq, bugs, commits = bug_parsing.find_errors_if_file()
             print(green_text("Репозиторий скачан и все коммиты получены успешно!"))
             continue
 
@@ -189,7 +190,7 @@ def menu():
                 print(red_text("Репозиторий не найден!"))
                 continue
             print(green_text("Построение гистограммы для первой гипотезы..."))
-            find_bugmakers.display_histogram_first(common_error_arr, error_arr)
+            bug_parsing.display_histogram_first(common_error_arr, error_arr)
             continue
 
         elif choice == "3":
@@ -197,7 +198,7 @@ def menu():
                 print(red_text("Репозиторий не найден!"))
                 continue
             print(green_text("Построение гистограммы для второй гипотезы..."))
-            find_bugmakers.display_histogram_second(numbers, freq)
+            bug_parsing.display_histogram_second(numbers, freq)
             continue
 
         elif choice == "4":
@@ -205,7 +206,15 @@ def menu():
                 print(red_text("Репозиторий не найден!"))
                 continue
             print(green_text("Вывод вероятности ошибки в файле..."))
-            find_bugmakers.bug_prediction(numbers, freq, bugs, commits)
+            bug_parsing.bug_prediction(numbers, freq, bugs, commits)
+            continue
+
+        elif choice == "5":
+            delete_repo_and_commits()
+            get_repo_from_url("https://github.com/usememos/memos")
+            get_commits_from_repo(Repo("./repo"))
+            common_error_arr, error_arr, numbers, freq, bugs, commits = bug_parsing.find_errors_if_file()
+            print(green_text("Репозиторий скачан и все коммиты получены успешно!"))
             continue
 
         elif choice == "0":
