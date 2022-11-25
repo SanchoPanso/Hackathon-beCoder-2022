@@ -10,7 +10,6 @@ from sklearn.model_selection import train_test_split
 import time
 import math
 
-
 from sklearn.metrics import accuracy_score, precision_score, recall_score, f1_score
 
 
@@ -200,13 +199,11 @@ def prepare_good_reviewer_data(commits_numbers: dict, bug_freq: list, bugs: list
         if author not in authors:
             authors[author] = cnt
             cnt += 1
-    
 
     for commit in commits:
         timestamp = commit['timestamp']
         author = commit['author']
         files = commit['files']
-
 
         for a in authors:
             nonbug_prob = 1
@@ -218,8 +215,6 @@ def prepare_good_reviewer_data(commits_numbers: dict, bug_freq: list, bugs: list
             y.append([1] if timestamp in bug_timestamps and a == author else [0])
 
     return x, y
-
-
 
 
 def find_errors_if_file():
@@ -315,7 +310,15 @@ def display_histogram_second(numbers: dict, freq: list):
     plt.show()
 
 
-def predict_bugability(commit: dict, model, commits_numbers: dict, bug_freq: list, bugs: list, commits: list):
+def predict_bugability(commit: dict, model, commits_numbers: dict, bug_freq: list):
+    """
+    This function predicts the bugability of a file
+    :param commit: dict, commit info
+    :param model: model, model for prediction
+    :param commits_numbers: dict, keys - authors, values - dicts of files and its number of commits for specific author
+    :param bug_freq: dict, dict, keys - authors, values - dicts of files and its number of bugs for specific author
+    :return: float, bugability of a file
+    """
     timestamp = commit['timestamp']
     author = commit['author']
     files = commit['files']
@@ -328,8 +331,7 @@ def predict_bugability(commit: dict, model, commits_numbers: dict, bug_freq: lis
         if file in statistic_1[author]:
             nonbug_prob *= 1 - statistic_1[author][file]
 
-    x = [1 - nonbug_prob]
-    
+    x = [[1 - nonbug_prob]]
     return model.predict(x)
 
 
@@ -369,13 +371,10 @@ def bug_prediction(commits_numbers: dict, bug_freq: list, bugs: list, commits: l
     # Evaluating
     test_pred_y = model.predict(test_x)
 
-
     print('\nData for trouble files prediction:')
     print('Accuracy:', accuracy_score(test_y, test_pred_y))
     print('Precision:', precision_score(test_y, test_pred_y))
     print('Recall:', recall_score(test_y, test_pred_y))
-
-    time.sleep(5)
 
     return model
 
@@ -416,16 +415,12 @@ def reviewer_prediction(commits_numbers: dict, bug_freq: list, bugs: list, commi
     # Evaluating
     test_pred_y = model.predict(test_x)
 
-
     print('\nData for trouble files prediction:')
     print('Accuracy:', accuracy_score(test_y, test_pred_y))
     print('Precision:', precision_score(test_y, test_pred_y))
     print('Recall:', recall_score(test_y, test_pred_y))
 
-    time.sleep(5)
-
     return model
-
 
 
 def main():

@@ -168,8 +168,11 @@ def menu():
         print(green_text("1") + ". Скачать репозиторий и получить все коммиты в файл")
         print(green_text("2") + ". Построить гистограмму для первой гипотезы")
         print(green_text("3") + ". Построить гистограмму для второй гипотезы")
-        print(green_text("4") + ". Вывести вероятность ошибки в файле")
+        print(green_text("4") + ". Вывести вероятность ошибки в модели")
         print(green_text("5") + ". Скачать тестовый репозиторий (usememos/memos)")
+        print(green_text("6") + ". Узнать вероятность ошибки в коммите")
+        print(green_text("7") + ". Обучить модель для поиска ревьюверов")
+        print(green_text("8") + ". Вывести шанс на ошибку последних 100 коммитов")
         print(green_text("0") + ". Удалить все файлы репозитория и информацию о коммитах")
         print(green_text("q") + ". Выход")
         print("Репозиторий для тестов: https://github.com/usememos/memos")
@@ -207,14 +210,51 @@ def menu():
                 continue
             print(green_text("Вывод вероятности ошибки в файле..."))
             bug_parsing.bug_prediction(numbers, freq, bugs, commits)
+            time.sleep(3)
             continue
 
         elif choice == "5":
+            if not check_if_repo_exists():
+                print(red_text("Репозиторий не найден!"))
+                continue
             delete_repo_and_commits()
             get_repo_from_url("https://github.com/usememos/memos")
             get_commits_from_repo(Repo("./repo"))
             common_error_arr, error_arr, numbers, freq, bugs, commits = bug_parsing.find_errors_if_file()
             print(green_text("Репозиторий скачан и все коммиты получены успешно!"))
+            continue
+
+        elif choice == "6":
+            if not check_if_repo_exists():
+                print(red_text("Репозиторий не найден!"))
+                continue
+            model = bug_parsing.bug_prediction(numbers, freq, bugs, commits)
+            print(green_text("Количество коммитов: " + str(len(commits))))
+            commit = commits[int(input("Введите номер коммита: "))]
+            model_prediction = bug_parsing.predict_bugability(commit, model, numbers, freq)
+            print("Вероятность того, что коммит " + str(commit) + red_text("\nошибочен: ") + str(model_prediction))
+            time.sleep(3)
+            continue
+
+        elif choice == "7":
+            if not check_if_repo_exists():
+                print(red_text("Репозиторий не найден!"))
+                continue
+            print(green_text("Вывод вероятности ошибки в файле..."))
+            bug_parsing.reviewer_prediction(numbers, freq, bugs, commits)
+            time.sleep(3)
+
+        elif choice == "8":
+            if not check_if_repo_exists():
+                print(red_text("Репозиторий не найден!"))
+                continue
+            model = bug_parsing.bug_prediction(numbers, freq, bugs, commits)
+            print(green_text("Количество коммитов: " + str(len(commits))))
+            print(green_text("Вероятность того, что последние 100 коммитов ошибочны: "))
+            for i in range(100):
+                model_prediction = bug_parsing.predict_bugability(commits[i], model, numbers, freq)
+                print(str(i) + " - " + str(model_prediction))
+            time.sleep(3)
             continue
 
         elif choice == "0":
