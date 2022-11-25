@@ -1,4 +1,4 @@
-2.1 find_errors_if_file()
+2.1. find_errors_if_file()
 =========================
 
 The function is required to search for bugmakers in a .json file with commits.

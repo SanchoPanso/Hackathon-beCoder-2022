@@ -2,7 +2,7 @@
 ===========
 This function outputs a histogram for commits.json, confirming or refuting the second hypothesis:
 
-*The developer is more likely to make errors in files he is working with for the first time.
+*The developer is more likely to make errors in files he is working with for the first time.*
 
 Accordingly, the more often the user works with a file, the lower the chance of making a mistake in it
 The approximated straight line on the graph of the number of times the user works with files should decrease

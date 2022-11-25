@@ -6,9 +6,7 @@ In this file there is a mathematical transformation of data for their interpreta
 
 Only the description of the key functions is ready now.
 
-Documentation WIP
-#################
-
+**Documentation WIP**
 
 .. toctree::
     :maxdepth: 1
