@@ -136,7 +136,7 @@ def find_bugability_statistics_2(commit_numbers: dict, bug_freq: list):
                 numbers_of_bugs = 0
 
             statistic[author]['x'].append(numbers_of_bugs / numbers_of_commits)
-            statistic[author]['y'].append(math.log(numbers_of_commits))
+            statistic[author]['y'].append(numbers_of_commits)
 
     return statistic
 
