@@ -6,7 +6,7 @@ This is the main file of the project.
 It contains the main function and the functions that are used to read the input file and to write the output file.
 
 .. toctree::
-    :maxdepth: 2
+    :maxdepth: 1
     :caption: Functions
 
     menu.rst
